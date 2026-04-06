@@ -40,3 +40,7 @@ If you receive or make a call, the app will recognize the audio/telephony state:
 ## Troubleshooting
 - **Overlay Not Showing:** Ensure that "Display over other apps" is strictly toggled `ON` in the Android system settings. 
 - **App Killed in Background:** Depending on your manufacturer (e.g., Xiaomi, Samsung), you might need to exclude the Eye Care app from aggressive battery optimizations.
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0). See the [LICENSE](LICENSE) file for details.
