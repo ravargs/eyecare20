@@ -23,6 +23,7 @@ public class OverlayManager {
     private WindowManager windowManager;
     private View overlayView;
     private TextView tvTimer;
+    private TextView tvDailyUsage;
     private CircularProgressIndicator progressBar;
     private boolean isOverlayShowing = false;
     private CountDownTimer countDownTimer;
@@ -44,7 +45,20 @@ public class OverlayManager {
         LayoutInflater inflater = LayoutInflater.from(themeContext);
         overlayView = inflater.inflate(R.layout.overlay_layout, null);
         tvTimer = overlayView.findViewById(R.id.tvTimer);
+        tvDailyUsage = overlayView.findViewById(R.id.tvDailyUsage);
         progressBar = overlayView.findViewById(R.id.progressBar);
+
+        long dailyTimeMillis = prefs.getLong("dailyScreenTime", 0);
+        long seconds = dailyTimeMillis / 1000;
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        String formattedTime;
+        if (hours > 0) {
+            formattedTime = String.format(java.util.Locale.getDefault(), "%dh %dm", hours, minutes);
+        } else {
+            formattedTime = String.format(java.util.Locale.getDefault(), "%dm", minutes);
+        }
+        tvDailyUsage.setText("Today's Screen time: " + formattedTime);
 
         int type;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

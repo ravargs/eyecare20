@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **UI Enhancement**: Replaced the plain text timer with a smooth, circular timer animation using `CircularProgressIndicator`.
 - **System Integration**: Added a 20-minute intelligence delay before resuming the screen-time counter after hanging up voice or video calls, preventing the overlay from abruptly appearing right after calls finish.
+- **Daily Statistics**: Implemented daily screen-time tracking that saves automatically and displays your total usage (e.g., "Today's Screen time: 4h 15m") neatly below the circular timer.
 
 ### Fixed
 - **Overlay Crash**: Resolved an `IllegalArgumentException` crash on newer versions when drawing the timer overlay. Correctly wrapped the background Service context with the app's Material Theme using `ContextThemeWrapper`.

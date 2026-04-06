@@ -60,6 +60,15 @@
                 android:textStyle="bold" />
         </FrameLayout>
 
+        <TextView
+            android:id="@+id/tvDailyUsage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today's Screen time: --"
+            android:textColor="#AAAAAA"
+            android:textSize="18sp"
+            android:layout_marginTop="48dp" />
+
     </LinearLayout>
 
 </FrameLayout>

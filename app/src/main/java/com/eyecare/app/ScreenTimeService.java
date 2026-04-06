@@ -22,6 +22,17 @@ public class ScreenTimeService extends Service {
     private int workTimeMillis;
     private Handler handler = new Handler();
     private OverlayManager overlayManager;
+    private long dailyScreenTime = 0;
+    private String lastSavedDate = "";
+
+    private String getCurrentDate() {
+        return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+    }
+
+    private void saveDailyTime() {
+        SharedPreferences prefs = getSharedPreferences("EyeCarePrefs", MODE_PRIVATE);
+        prefs.edit().putLong("dailyScreenTime", dailyScreenTime).putString("lastSavedDate", lastSavedDate).apply();
+    }
 
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
         @Override
@@ -33,6 +44,7 @@ public class ScreenTimeService extends Service {
             } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
                 isScreenOn = false;
                 stopTimer();
+                saveDailyTime();
             }
         }
     };
@@ -45,6 +57,16 @@ public class ScreenTimeService extends Service {
 
         SharedPreferences prefs = getSharedPreferences("EyeCarePrefs", MODE_PRIVATE);
         workTimeMillis = prefs.getInt("workTime", 20) * 60 * 1000;
+        
+        lastSavedDate = prefs.getString("lastSavedDate", "");
+        String currentDate = getCurrentDate();
+        if (currentDate.equals(lastSavedDate)) {
+            dailyScreenTime = prefs.getLong("dailyScreenTime", 0);
+        } else {
+            dailyScreenTime = 0;
+            lastSavedDate = currentDate;
+            saveDailyTime();
+        }
         
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_ON);
@@ -104,6 +126,13 @@ public class ScreenTimeService extends Service {
         @Override
         public void run() {
             if (isScreenOn) {
+                String currentDate = getCurrentDate();
+                if (!currentDate.equals(lastSavedDate)) {
+                    dailyScreenTime = 0;
+                    lastSavedDate = currentDate;
+                }
+                dailyScreenTime += 1000;
+
                 if (isUserInCall()) {
                     // Reset timer during the call so it waits another full cycle after call ends
                     startTime = System.currentTimeMillis();
@@ -114,6 +143,7 @@ public class ScreenTimeService extends Service {
                     if (!overlayManager.isShowing()) {
                         long elapsed = System.currentTimeMillis() - startTime;
                         if (elapsed >= workTimeMillis) {
+                            saveDailyTime();
                             overlayManager.showOverlay();
                             startTime = System.currentTimeMillis(); 
                         }
@@ -127,6 +157,7 @@ public class ScreenTimeService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        saveDailyTime();
         unregisterReceiver(screenReceiver);
         stopTimer();
         overlayManager.removeOverlay();
