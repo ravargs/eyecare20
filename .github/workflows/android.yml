@@ -27,8 +27,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Debug APK
+    - name: Build APK
       run: ./gradlew assembleDebug
+
+    - name: Rename APK
+      run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/eyecare20.apk
 
     - name: Run Lint
       run: ./gradlew lintDebug
@@ -40,8 +43,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: "v1.0.${{ github.run_number }}"
-        name: "Debug Build #${{ github.run_number }}"
-        files: app/build/outputs/apk/debug/app-debug.apk
-        body: "Automated debug build generated from GitHub Actions."
+        name: "EyeCare App v1.0.${{ github.run_number }}"
+        files: app/build/outputs/apk/debug/eyecare20.apk
+        body: "Automated build generated from GitHub Actions."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
