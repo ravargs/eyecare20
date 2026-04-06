@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E6000000"
@@ -31,14 +32,33 @@
             android:textSize="18sp"
             android:layout_marginBottom="32dp" />
 
-        <TextView
-            android:id="@+id/tvTimer"
+        <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="20"
-            android:textColor="#4CAF50"
-            android:textSize="72sp"
-            android:textStyle="bold" />
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:indicatorColor="#4CAF50"
+                app:trackColor="#334CAF50"
+                app:indicatorSize="200dp"
+                app:trackThickness="16dp" 
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/tvTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="20"
+                android:textColor="#4CAF50"
+                android:textSize="72sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
     </LinearLayout>
 

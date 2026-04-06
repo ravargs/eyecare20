@@ -14,14 +14,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.animation.ObjectAnimator;
+import android.view.animation.LinearInterpolator;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 public class OverlayManager {
     private Context context;
     private WindowManager windowManager;
     private View overlayView;
     private TextView tvTimer;
+    private CircularProgressIndicator progressBar;
     private boolean isOverlayShowing = false;
     private CountDownTimer countDownTimer;
+    private ObjectAnimator progressAnimator;
     private int restTimeSeconds;
 
     public OverlayManager(Context context) {
@@ -35,9 +40,11 @@ public class OverlayManager {
         SharedPreferences prefs = context.getSharedPreferences("EyeCarePrefs", Context.MODE_PRIVATE);
         restTimeSeconds = prefs.getInt("restTime", 20);
 
-        LayoutInflater inflater = LayoutInflater.from(context);
+        android.content.Context themeContext = new android.view.ContextThemeWrapper(context, R.style.Theme_EyeCareApp);
+        LayoutInflater inflater = LayoutInflater.from(themeContext);
         overlayView = inflater.inflate(R.layout.overlay_layout, null);
         tvTimer = overlayView.findViewById(R.id.tvTimer);
+        progressBar = overlayView.findViewById(R.id.progressBar);
 
         int type;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -70,6 +77,16 @@ public class OverlayManager {
     }
 
     private void startCountdown() {
+        if (progressBar != null) {
+            progressBar.setMax(restTimeSeconds * 1000);
+            progressBar.setProgress(restTimeSeconds * 1000);
+
+            progressAnimator = ObjectAnimator.ofInt(progressBar, "progress", restTimeSeconds * 1000, 0);
+            progressAnimator.setDuration(restTimeSeconds * 1000L);
+            progressAnimator.setInterpolator(new LinearInterpolator());
+            progressAnimator.start();
+        }
+
         countDownTimer = new CountDownTimer(restTimeSeconds * 1000L, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -95,6 +112,10 @@ public class OverlayManager {
         if (countDownTimer != null) {
             countDownTimer.cancel();
             countDownTimer = null;
+        }
+        if (progressAnimator != null) {
+            progressAnimator.cancel();
+            progressAnimator = null;
         }
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
