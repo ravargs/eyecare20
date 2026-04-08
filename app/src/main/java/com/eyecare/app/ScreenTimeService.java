@@ -32,6 +32,14 @@ public class ScreenTimeService extends Service {
     private void saveDailyTime() {
         SharedPreferences prefs = getSharedPreferences("EyeCarePrefs", MODE_PRIVATE);
         prefs.edit().putLong("dailyScreenTime", dailyScreenTime).putString("lastSavedDate", lastSavedDate).apply();
+        try {
+            String historyJson = prefs.getString("usageHistory", "{}");
+            org.json.JSONObject history = new org.json.JSONObject(historyJson);
+            history.put(lastSavedDate, dailyScreenTime);
+            prefs.edit().putString("usageHistory", history.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {

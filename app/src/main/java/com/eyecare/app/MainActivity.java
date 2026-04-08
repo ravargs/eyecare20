@@ -11,6 +11,14 @@ import android.provider.Settings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
+import org.json.JSONObject;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     private EditText editWorkTime;
     private EditText editRestTime;
     private Button btnToggleService;
+    private Button btnExport;
+    private Button btnImport;
+    private LinearLayout layoutHistoryList;
     private SharedPreferences prefs;
 
     @Override
@@ -37,6 +48,15 @@ public class MainActivity extends AppCompatActivity {
 
         editWorkTime.setText(String.valueOf(workTimeInfo));
         editRestTime.setText(String.valueOf(restTimeInfo));
+
+        btnExport = findViewById(R.id.btnExport);
+        btnImport = findViewById(R.id.btnImport);
+        layoutHistoryList = findViewById(R.id.layoutHistoryList);
+
+        btnExport.setOnClickListener(v -> exportData());
+        btnImport.setOnClickListener(v -> importData());
+
+        loadHistoryList();
 
         updateButtonState();
 
@@ -125,5 +145,94 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateButtonState();
+        loadHistoryList();
+    }
+
+    private void loadHistoryList() {
+        layoutHistoryList.removeAllViews();
+        try {
+            String historyJson = prefs.getString("usageHistory", "{}");
+            JSONObject history = new JSONObject(historyJson);
+            ArrayList<String> dates = new ArrayList<>();
+            Iterator<String> keys = history.keys();
+            while (keys.hasNext()) {
+                dates.add(keys.next());
+            }
+            Collections.sort(dates, Collections.reverseOrder());
+            
+            int count = 0;
+            for (String date : dates) {
+                if (count >= 30) break;
+                long millis = history.getLong(date);
+                long hours = millis / 3600000;
+                long minutes = (millis % 3600000) / 60000;
+                
+                String[] parts = date.split("-");
+                String displayDate = date;
+                if (parts.length == 3) {
+                    displayDate = parts[2] + "/" + parts[1] + "/" + parts[0].substring(2);
+                }
+                
+                TextView tv = new TextView(this);
+                tv.setText(displayDate + ": " + hours + "h " + minutes + "m");
+                tv.setTextSize(16);
+                tv.setPadding(0, 8, 0, 8);
+                layoutHistoryList.addView(tv);
+                count++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void exportData() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, "EyeCare_UsageHistory.json");
+        startActivityForResult(intent, 1001);
+    }
+
+    private void importData() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        startActivityForResult(intent, 1002);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+            if (requestCode == 1001) { // Export
+                try {
+                    OutputStream os = getContentResolver().openOutputStream(uri);
+                    if (os != null) {
+                        String historyJson = prefs.getString("usageHistory", "{}");
+                        os.write(historyJson.getBytes());
+                        os.close();
+                        Toast.makeText(this, "Exported successfully", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
+                }
+            } else if (requestCode == 1002) { // Import
+                try {
+                    InputStream is = getContentResolver().openInputStream(uri);
+                    if (is != null) {
+                        java.util.Scanner scanner = new java.util.Scanner(is).useDelimiter("\\A");
+                        String json = scanner.hasNext() ? scanner.next() : "";
+                        is.close();
+                        new JSONObject(json); // Validate
+                        prefs.edit().putString("usageHistory", json).apply();
+                        loadHistoryList();
+                        Toast.makeText(this, "Imported successfully", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Import failed: Invalid file", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 }
