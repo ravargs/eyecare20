@@ -102,8 +102,10 @@ public class MainActivity extends AppCompatActivity {
     private void updateButtonState() {
         if (isServiceRunning(ScreenTimeService.class)) {
             btnToggleService.setText(R.string.stop_service);
+            btnToggleService.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#E53935")));
         } else {
             btnToggleService.setText(R.string.start_service);
+            btnToggleService.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#43A047")));
         }
     }
 
